@@ -4,6 +4,8 @@ Ortofotodan bina ayak izi çıkarır, kat bilgisiyle birleştirir ve LoD1 3B mod
 
 Girdi bir ortofoto (GeoTIFF) ve kat sayısı taşıyan bir bina katmanıdır. Çıktı GeoJSON, 3B DXF ve GLB'dir.
 
+**Canlı demo:** [samethcan.github.io/konak3d](https://samethcan.github.io/konak3d/) — tarayıcıda dönen 3B model, kat yüksekliği kaydırıcısı. Sentetik veriyle çalışır.
+
 ```
 ortofoto.tif ──► detect ──► footprint ──► refine ──┐
                                                    ├──► join ──► export ──► scene
