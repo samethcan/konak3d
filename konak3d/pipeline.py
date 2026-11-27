@@ -19,7 +19,7 @@ def _units_from_vector(path, raster, kat_field, id_field):
 
 def run(raster_path, units_path, aoi_path=None, workdir="work", outdir="out", floor_h=3.0,
         ckpt="/tmp/MobileSAM/weights/mobile_sam.pt", kat_field="kat", id_field="bina_no",
-        formats=("geojson", "dxf", "glb"), skip_detect=False, log=print, on_step=lambda i, n: None):
+        formats=("geojson", "dxf", "glb", "cityjson"), skip_detect=False, log=print, on_step=lambda i, n: None):
     """Hatti bastan sona calistirir ve ozet sozlugu dondurur."""
     os.makedirs(workdir, exist_ok=True); os.makedirs(outdir, exist_ok=True)
     t_all = time.time(); n = len(STEPS); s = 0
@@ -82,10 +82,12 @@ def run(raster_path, units_path, aoi_path=None, workdir="work", outdir="out", fl
         if f == "geojson": p = ex.geojson(fp, f"{outdir}/binalar.geojson")
         elif f == "dxf": p = ex.dxf(fp, f"{outdir}/binalar_3b.dxf")
         elif f == "glb": p, _ = ex.glb(fp, f"{outdir}/lod1.glb")
+        elif f == "cityjson": p, nb = ex.cityjson(fp, f"{outdir}/lod1.city.json"); log(f"cityjson   : {nb} bina nesnesi")
         else: continue
         written.append(p); log(f"yazildi    : {os.path.basename(p)}  ({os.path.getsize(p)/1024:.0f} KB)")
     on_step(n, n)
 
+    qa["geometri"] = ex.validate_solids(fp, log=log)
     qa["gfa_est_m2"] = float((fp.alan_m2 * fp.kat.clip(lower=1)).sum())
     qa["footprint_m2"] = float(fp.alan_m2.sum())
     qa["files"] = written

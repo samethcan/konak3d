@@ -81,11 +81,30 @@ def cmd_export(a):
         if f == "geojson": p = ex.geojson(fp, "out/konak_binalar.geojson")
         elif f == "dxf": p = ex.dxf(fp, "out/konak_binalar_3b.dxf")
         elif f == "glb": p, n = ex.glb(fp, "out/konak_lod1.glb")
+        elif f == "cityjson": p, n = ex.cityjson(fp, "out/konak_lod1.city.json")
         print(f"wrote     : {p}  ({os.path.getsize(p)/1024:.0f} KB)")
 
 def cmd_gui(a):
     from .gui import main as gui_main
     gui_main()
+
+def cmd_run(a):
+    """Tek komutla tum hat: konfigurasyon dosyasindan okur, kunye yazar."""
+    import json as _j, time as _t
+    from . import pipeline, manifest
+    cfg = _j.load(open(a.config, encoding="utf-8"))
+    t0 = _t.time()
+    qa = pipeline.run(cfg["raster"], cfg["units"], cfg.get("aoi"),
+                      workdir=cfg.get("workdir", "work"), outdir=cfg.get("outdir", "out"),
+                      floor_h=cfg.get("floor_h", 3.0), ckpt=cfg.get("ckpt"),
+                      kat_field=cfg.get("kat_field", "kat"), id_field=cfg.get("id_field", "bina_no"),
+                      formats=tuple(cfg.get("formats", ["geojson", "dxf", "glb"])),
+                      skip_detect=a.skip_detect)
+    p, man = manifest.build(cfg, {"ortofoto": cfg["raster"], "kat_katmani": cfg["units"],
+                                  "alan_siniri": cfg.get("aoi"), "model": cfg.get("ckpt")},
+                            qa, t0, cfg.get("outdir", "out"))
+    print(f"kunye     : {p}")
+    print(f"git       : {man['git_commit']}")
 
 def main():
     p = argparse.ArgumentParser(prog="konak3d"); s = p.add_subparsers(dest="cmd", required=True)
@@ -96,9 +115,10 @@ def main():
     q = s.add_parser("detect"); q.add_argument("--raster", required=True); q.add_argument("--ckpt", default="/tmp/MobileSAM/weights/mobile_sam.pt"); q.add_argument("--max-tiles", type=int); q.set_defaults(f=cmd_detect)
     q = s.add_parser("footprint"); q.add_argument("--raster", required=True); q.set_defaults(f=cmd_footprint)
     q = s.add_parser("join"); q.add_argument("--raster", required=True); q.add_argument("--floor-h", type=float, default=3.0); q.add_argument("--min-overlap", type=float, default=0.2); q.set_defaults(f=cmd_join)
-    q = s.add_parser("export"); q.add_argument("--format", default="geojson,dxf,glb"); q.set_defaults(f=cmd_export)
+    q = s.add_parser("export"); q.add_argument("--format", default="geojson,dxf,glb,cityjson"); q.set_defaults(f=cmd_export)
     q = s.add_parser("refine"); q.add_argument("--raster", required=True); q.add_argument("--relaxed", action="store_true"); q.add_argument("--ckpt", default="/tmp/MobileSAM/weights/mobile_sam.pt"); q.set_defaults(f=cmd_refine)
     q = s.add_parser("scene"); q.add_argument("--floor-h", type=float, default=3.0); q.add_argument("--exag", type=float, default=1.0); q.set_defaults(f=cmd_scene)
+    q = s.add_parser("run"); q.add_argument("--config", required=True); q.add_argument("--skip-detect", action="store_true"); q.set_defaults(f=cmd_run)
     q = s.add_parser("gui"); q.set_defaults(f=cmd_gui)
     a = p.parse_args(); a.f(a)
 

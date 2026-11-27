@@ -1,0 +1,19 @@
+{
+  "raster": "work/ortofoto.tif",
+  "units": "work/katdefteri.NCZ",
+  "aoi": "work/alan.kmz",
+  "workdir": "work",
+  "outdir": "out",
+  "floor_h": 3.0,
+  "min_overlap": 0.2,
+  "gsd_down": 2,
+  "tile": 1024,
+  "overlap": 128,
+  "points_per_side": 36,
+  "pred_iou_thresh": 0.84,
+  "stability_score_thresh": 0.88,
+  "min_mask_region_area": 150,
+  "simplify_tolerance": 0.35,
+  "formats": ["geojson", "dxf", "glb", "cityjson"],
+  "ckpt": "/tmp/MobileSAM/weights/mobile_sam.pt"
+}
