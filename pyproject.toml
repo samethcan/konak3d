@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "konak3d"
+version = "0.6.0"
+description = "Ortofotodan bina ayak izi, kat defteriyle birlestirme ve LoD1 3B model uretimi"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dependencies = [
+  "numpy>=1.26", "opencv-python-headless>=4.9", "rasterio>=1.3", "geopandas>=1.0",
+  "shapely>=2.0", "pyproj>=3.6", "buildingregulariser>=0.3", "ezdxf>=1.3",
+  "trimesh>=4.0", "mapbox_earcut", "Pillow>=10",
+]
+
+[project.scripts]
+konak3d = "konak3d.cli:main"
+konak3d-gui = "konak3d.gui:main"
+
+[tool.setuptools.packages.find]
+include = ["konak3d*"]

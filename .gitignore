@@ -1,0 +1,11 @@
+work/
+out/
+logs/*.raw
+__pycache__/
+*.pyc
+*.mp4
+*.npy
+*.pkl
+demo/ortofoto.tif
+demo/units.gpkg
+demo/aoi.geojson
