@@ -1,0 +1,7 @@
+$ konak3d join --raster demo/ortofoto.tif --floor-h 3.0
+kat_defteri_birimi_AOI=224
+matched=74/112
+unit_cover>=50%=200/224 (89.3%)  >=30%=200/224 (89.3%)
+kat hist  : 0k=38 1k=16 2k=30 3k=14 4k=7 5k=6 6k=1
+saved     : work/footprints_kat.gpkg, work/qa.json
+# wall 1.4 s

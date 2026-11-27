@@ -1,0 +1,8 @@
+$ konak3d inspect demo/ortofoto.tif
+file      : ortofoto.tif
+size      : 2400 x 2400 px   bands=3  dtype=uint8
+crs       : EPSG:32635  (WGS 84 / UTM zone 35N)
+gsd       : 0.110 m/px
+extent    : 500000.0 4249736.0 500264.0 4250000.0
+coverage  : 7.0 ha
+# wall 3.2 s

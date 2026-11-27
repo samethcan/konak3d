@@ -1,0 +1,5 @@
+$ konak3d footprint --raster demo/ortofoto.tif
+candidates=352  after_nms=101
+regularized=101  (orthogonalized, tol=0.35 m)
+saved     : work/footprints.gpkg
+# wall 3.5 s

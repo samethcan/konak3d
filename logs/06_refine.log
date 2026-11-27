@@ -1,0 +1,6 @@
+$ konak3d refine --raster demo/ortofoto.tif
+pass 1 (strict) : 35 units -> +11
+pass 2 (relaxed): 24 units -> +0
+footprints: 101 -> 112  (+11 prompted)
+saved     : work/footprints_refined.gpkg
+# wall 10.8 s

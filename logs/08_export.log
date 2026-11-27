@@ -1,0 +1,5 @@
+$ konak3d export --format geojson,dxf,glb
+wrote     : out/konak_binalar.geojson  (139 KB)
+wrote     : out/konak_binalar_3b.dxf  (1267 KB)
+wrote     : out/konak_lod1.glb  (197 KB)
+# wall 2.0 s

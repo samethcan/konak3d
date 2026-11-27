@@ -1,0 +1,7 @@
+$ konak3d detect --raster demo/ortofoto.tif
+4 tiles
+39 39 502 294 294
+1831 39 93 326 279
+39 1831 92 351 277
+1831 1831 21 353 322
+DONE

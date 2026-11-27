@@ -1,0 +1,7 @@
+$ konak3d scene
+extrusions : 112  (kat defterinden 74, varsayim 38)
+height     : kat x 3.0 m   max 18 m   exag x1.0
+footprint  : 26,212 m2
+gfa (est.) : 37,472 m2   (alan x kat)
+saved      : work/scene.json
+# wall 1.2 s

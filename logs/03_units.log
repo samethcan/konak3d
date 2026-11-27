@@ -1,0 +1,6 @@
+$ konak3d units demo/units.gpkg --raster demo/ortofoto.tif
+source    : units.gpkg  (EPSG:32635 -> EPSG:32635)
+polygons  : 224
+in AOI    : 224
+kat dist. : 1k=55 2k=75 3k=39 4k=28 5k=18 6k=9
+# wall 1.2 s
