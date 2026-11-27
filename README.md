@@ -50,6 +50,37 @@ konak3d export    --format geojson,dxf,glb
 konak3d scene
 ```
 
+## Tek komutla tekrar edilebilir çalıştırma
+
+```bash
+konak3d run --config konak3d/config_ornek.json
+```
+
+Konfigürasyon dosyası bütün parametreleri taşır. Çalıştırma bitince `out/run_manifest.json` yazılır; içinde:
+
+- her girdinin SHA-256 özeti (ortofoto, kat katmanı, alan sınırı, model dosyası)
+- kullanılan bütün parametreler
+- Python ve paket sürümleri, platform, çekirdek sayısı
+- depo commit kimliği
+- kalite ölçütleri ve geometri doğrulama sonuçları
+
+Tespit aşaması belirlenimcidir: nokta ızgarası sabittir, rastgele örnekleme yoktur. Aynı girdi,
+aynı parametre ve aynı paket sürümleriyle çıktı tekrar edilebilir.
+
+## 3B çıktı ve doğrulama
+
+| Biçim | Dosya | Kullanım |
+|---|---|---|
+| CityJSON 2.0 | `lod1.city.json` | LoD1 şehir modeli standardı; semantik yüzeyler (GroundSurface, WallSurface, RoofSurface) ve bina öznitelikleri |
+| DXF (3B) | `binalar_3b.dxf` | Netcad / AutoCAD, kat sayısına göre katmanlı |
+| glTF | `lod1.glb` | Web ve 3B görüntüleyiciler |
+| GeoJSON | `binalar.geojson` | CBS, EPSG:4326 |
+
+CityJSON nesneleri Solid olarak yazılır. Her çalıştırmada katılar doğrulanır: kapalı (watertight)
+olup olmadıkları ve hacimleri ölçülür, sonuç künyeye yazılır. Sentetik demoda 112 katının 112'si
+kapalı çıkmıştır ve CityJSON'dan geri okunan toplam hacim, kaynak geometriden hesaplanan hacimden
+%0,004 sapmıştır (1 mm'lik koordinat nicemlemesinden gelen fark).
+
 ## Komutlar
 
 | Komut | Yaptığı iş |
@@ -62,7 +93,8 @@ konak3d scene
 | `footprint` | Karo bindirmelerini NMS ile temizler, `buildingregulariser` ile köşeleri dikleştirir |
 | `refine` | Kapsanmayan kat birimlerini nokta + kutu istemi olarak verip ikinci segmentasyon yapar (sıkı ve gevşek iki geçiş) |
 | `join` | Ayak izi ile kat katmanını örtüşmeye göre eşler, `height_m = kat × floor_h` atar, kapsama ölçer |
-| `export` | GeoJSON (EPSG:4326), katmanlı 3B DXF, renkli GLB |
+| `run` | Konfigürasyon dosyasından tüm hattı çalıştırır ve künye yazar |
+| `export` | GeoJSON, katmanlı 3B DXF, renkli GLB, CityJSON 2.0 |
 | `scene` | Bina sayısı, taban alanı, tahmini inşaat alanı |
 | `gui` | Masaüstü arayüzünü açar |
 
