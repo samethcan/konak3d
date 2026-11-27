@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>konak3d — canlı demo</title>
+<style>
+  :root{--bg:#0d1117;--panel:#161b22;--line:#30363d;--fg:#e6edf3;--dim:#8b949e;--acc:#ff8a2a}
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);
+    font:14px/1.5 ui-sans-serif,system-ui,"Segoe UI",Roboto,sans-serif}
+  #app{position:fixed;inset:0}
+  canvas{display:block}
+  .panel{position:absolute;background:rgba(22,27,34,.92);border:1px solid var(--line);
+    border-radius:10px;padding:14px 16px;backdrop-filter:blur(6px)}
+  #ctl{top:14px;left:14px;width:264px}
+  #ctl h1{margin:0 0 2px;font-size:16px;font-weight:600}
+  #ctl p{margin:0 0 12px;color:var(--dim);font-size:12px}
+  label{display:block;margin:10px 0 4px;font-size:12px;color:var(--dim)}
+  input[type=range]{width:100%;accent-color:var(--acc)}
+  .row{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+  button{flex:1;min-width:76px;background:#21262d;color:var(--fg);border:1px solid var(--line);
+    border-radius:7px;padding:7px 8px;font-size:12px;cursor:pointer}
+  button.on{background:var(--acc);border-color:var(--acc);color:#1b1000;font-weight:600}
+  #stats{bottom:14px;left:14px;font-variant-numeric:tabular-nums;font-size:12px}
+  #stats b{font-size:18px;font-weight:600}
+  #stats div{margin:3px 0;color:var(--dim)}
+  #stats span{color:var(--fg)}
+  #leg{bottom:14px;right:14px;font-size:12px}
+  #leg i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+  #leg div{margin:3px 0;color:var(--dim)}
+  #note{top:14px;right:14px;max-width:248px;font-size:11px;color:var(--dim);line-height:1.5}
+  #note a{color:var(--acc)}
+  #load{position:absolute;inset:0;display:grid;place-items:center;color:var(--dim)}
+  @media(max-width:720px){
+    #ctl{width:auto;left:10px;right:10px;top:10px;padding:10px 12px}
+    #note,#leg{display:none}
+    #stats{left:10px;bottom:10px;padding:10px 12px}
+  }
+</style>
+</head>
+<body>
+<div id="app"><div id="load">yükleniyor…</div></div>
+
+<div class="panel" id="ctl">
+  <h1>konak3d — canlı demo</h1>
+  <p>Sentetik veri. Fare ile döndür, tekerlekle yakınlaş.</p>
+  <label>Kat yüksekliği: <span id="fhv">3.0</span> m</label>
+  <input type="range" id="fh" min="2" max="6" step="0.1" value="3">
+  <div class="row">
+    <button id="bk" class="on">Kat rengi</button>
+    <button id="bs">Kaynak rengi</button>
+  </div>
+  <div class="row">
+    <button id="bg" class="on">Zemin</button>
+    <button id="bw">Tel kafes</button>
+    <button id="br" class="on">Döndür</button>
+  </div>
+</div>
+
+<div class="panel" id="stats">
+  <b id="sn">0</b> bina
+  <div>kat eşleşen <span id="sm">0</span></div>
+  <div>taban alanı <span id="sa">0</span> m²</div>
+  <div>tahmini inşaat <span id="sg">0</span> m²</div>
+</div>
+
+<div class="panel" id="leg"></div>
+<div class="panel" id="note">
+  Bu sayfa <b>sentetik</b> demo verisiyle çalışır; kurum verisi içermez.<br>
+  Kaynak kod: <a href="https://github.com/samethcan/konak3d">github.com/samethcan/konak3d</a>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js"></script>
+<script>
+const PAL=[0x9aa0a6,0x6edc5a,0xffd728,0xff961e,0xf03c2c,0xff3cc8];
+const SRC=[0x5aa9ff,0x6edc5a];
+const col=k=>PAL[Math.min(k,5)];
+let data,scene,cam,ren,grp,ground,rot=true,mode='kat',wire=false,fh=3.0;
+let th=0.72,ph=0.95,dist=330,tgt=new THREE.Vector3(0,0,0);
+
+fetch('binalar.json').then(r=>r.json()).then(d=>{data=d;init();}).catch(e=>{
+  document.getElementById('load').textContent='veri yüklenemedi: '+e.message;});
+
+function init(){
+  const app=document.getElementById('app'); app.innerHTML='';
+  scene=new THREE.Scene();
+  scene.background=new THREE.Color(0x0d1117);
+  scene.fog=new THREE.Fog(0x0d1117,420,900);
+  cam=new THREE.PerspectiveCamera(42,innerWidth/innerHeight,1,4000);
+  ren=new THREE.WebGLRenderer({antialias:true});
+  ren.setPixelRatio(Math.min(devicePixelRatio,2));
+  ren.setSize(innerWidth,innerHeight); app.appendChild(ren.domElement);
+
+  scene.add(new THREE.HemisphereLight(0xcfd8e3,0x202528,1.05));
+  const sun=new THREE.DirectionalLight(0xfff0dd,1.25); sun.position.set(-120,170,110); scene.add(sun);
+
+  const tex=new THREE.TextureLoader().load('zemin.jpg');
+  tex.colorSpace=THREE.SRGBColorSpace;
+  ground=new THREE.Mesh(new THREE.PlaneGeometry(data.meta.w,data.meta.h),
+    new THREE.MeshBasicMaterial({map:tex}));
+  ground.rotation.x=-Math.PI/2; ground.position.y=-0.05; scene.add(ground);
+
+  grp=new THREE.Group(); scene.add(grp);
+  build(); legend(); stats(); bind(); onResize(); loop();
+}
+
+function build(){
+  while(grp.children.length){const m=grp.children.pop();m.geometry.dispose();m.material.dispose();}
+  const byCol={};
+  for(const f of data.f){
+    const c=mode==='kat'?col(f.k):SRC[f.s];
+    const sh=new THREE.Shape(f.r.map(p=>new THREE.Vector2(p[0],p[1])));
+    const h=Math.max((f.k||1)*fh,1.2);
+    const g=new THREE.ExtrudeGeometry(sh,{depth:h,bevelEnabled:false});
+    g.rotateX(-Math.PI/2);
+    (byCol[c]=byCol[c]||[]).push(g);
+  }
+  for(const c in byCol){
+    const mat=new THREE.MeshLambertMaterial({color:+c,wireframe:wire});
+    for(const g of byCol[c]) grp.add(new THREE.Mesh(g,mat));
+  }
+}
+
+function legend(){
+  const el=document.getElementById('leg');
+  el.innerHTML = mode==='kat'
+    ? ['kat yok','1 kat','2 kat','3 kat','4 kat','5+ kat'].map((t,i)=>
+        `<div><i style="background:#${PAL[i].toString(16).padStart(6,'0')}"></i>${t}</div>`).join('')
+    : [['otomatik tespit',SRC[0]],['kat defteri istemli',SRC[1]]].map(([t,c])=>
+        `<div><i style="background:#${c.toString(16).padStart(6,'0')}"></i>${t}</div>`).join('');
+}
+
+function stats(){
+  const n=data.f.length, m=data.f.filter(f=>f.k>0).length;
+  const a=data.f.reduce((s,f)=>s+f.a,0);
+  const g=data.f.reduce((s,f)=>s+f.a*Math.max(f.k,1),0);
+  const fm=x=>Math.round(x).toLocaleString('tr-TR');
+  sn.textContent=n; sm.textContent=m+' / '+n; sa.textContent=fm(a); sg.textContent=fm(g);
+}
+
+function bind(){
+  const t=(id,fn)=>document.getElementById(id).addEventListener('click',fn);
+  document.getElementById("fh").addEventListener('input',e=>{fh=+e.target.value;fhv.textContent=fh.toFixed(1);build();stats();});
+  t('bk',()=>{mode='kat';bk.classList.add('on');bs.classList.remove('on');build();legend();});
+  t('bs',()=>{mode='src';bs.classList.add('on');bk.classList.remove('on');build();legend();});
+  t('bg',()=>{ground.visible=!ground.visible;bg.classList.toggle('on',ground.visible);});
+  t('bw',()=>{wire=!wire;bw.classList.toggle('on',wire);build();});
+  t('br',()=>{rot=!rot;br.classList.toggle('on',rot);});
+
+  const el=ren.domElement; let drag=false,px=0,py=0;
+  el.addEventListener('pointerdown',e=>{drag=true;px=e.clientX;py=e.clientY;rot=false;br.classList.remove('on');});
+  addEventListener('pointerup',()=>drag=false);
+  addEventListener('pointermove',e=>{
+    if(!drag)return;
+    th-=(e.clientX-px)*0.005; ph=Math.min(1.45,Math.max(0.12,ph-(e.clientY-py)*0.005));
+    px=e.clientX; py=e.clientY;});
+  el.addEventListener('wheel',e=>{e.preventDefault();
+    dist=Math.min(900,Math.max(60,dist*(1+Math.sign(e.deltaY)*0.09)));},{passive:false});
+  addEventListener('resize',onResize);
+}
+function onResize(){cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();ren.setSize(innerWidth,innerHeight);}
+
+function loop(){
+  requestAnimationFrame(loop);
+  if(rot) th+=0.0016;
+  cam.position.set(tgt.x+dist*Math.cos(ph)*Math.sin(th), tgt.y+dist*Math.sin(ph), tgt.z+dist*Math.cos(ph)*Math.cos(th));
+  cam.lookAt(tgt); ren.render(scene,cam);
+}
+</script>
+</body>
+</html>
