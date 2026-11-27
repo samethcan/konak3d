@@ -31,7 +31,7 @@ konak3d gui
 ```
 
 Dosyaları seç, kat yüksekliğini gir, Çalıştır'a bas. İlerleme ve günlük pencerede akar, sonunda özet çıkar.
-Windows için tek dosyalık `.exe` üretimi: [BUILD.md](BUILD.md).
+Windows için tek dosyalık `.exe`: `build_windows.bat` dosyasına çift tıklayın, gerisi kendiliğinden ilerler. Ayrıntılar: [BUILD.md](BUILD.md).
 
 ## Hızlı başlangıç (sentetik demo)
 
